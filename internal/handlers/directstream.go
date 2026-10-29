@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"seanime/internal/database/db_bridge"
 	"seanime/internal/directstream"
+	"seanime/internal/mediastream/videofile"
 	"seanime/internal/mkvparser"
 	"seanime/internal/security"
 	"seanime/internal/util"
@@ -49,6 +50,46 @@ func (h *Handler) HandleDirectstreamPlayLocalFile(c echo.Context) error {
 		Path:       b.Path,
 		LocalFiles: lfs,
 	})
+}
+
+// HandleDirectstreamTranscode
+//
+//	@summary transcode the current torrent stream.
+//	@desc This starts transcoding the torrent currently being streamed so browsers that can't play its codecs can watch it.
+//	@desc Subtitles keep coming from the direct stream, only the video and audio are transcoded.
+//	@returns mediastream.MediaContainer
+//	@route /api/v1/directstream/transcode [POST]
+func (h *Handler) HandleDirectstreamTranscode(c echo.Context) error {
+	if err := h.guardMediaConsumption(c); err != nil {
+		return err
+	}
+
+	type body struct {
+		ClientId string `json:"clientId"` // The session id
+	}
+
+	var b body
+	if err := c.Bind(&b); err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	b.ClientId = getRequestClientId(c, b.ClientId)
+
+	if err := h.guardPrivilegedMediastream(c, h.App.SecondarySettings.Mediastream); err != nil {
+		return err
+	}
+
+	inputUrl, id, ok := h.App.TorrentstreamRepository.GetTranscodeInput()
+	if !ok {
+		return h.RespondWithError(c, fmt.Errorf("no torrent is being streamed"))
+	}
+
+	mediaContainer, err := h.App.MediastreamRepository.RequestTranscodeRemoteStream(inputUrl, videofile.GetHashForStream(id), b.ClientId)
+	if err != nil {
+		return h.RespondWithError(c, err)
+	}
+
+	return h.RespondWithData(c, mediaContainer)
 }
 
 // HandleDirectstreamConvertSubs

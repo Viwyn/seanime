@@ -156,7 +156,8 @@ func BuildQualityLadder(info *videofile.MediaInfo) []QualityLadderEntry {
 
 	// whether the source can be transmuxed (copied) as the "original"
 	// h264 baseline/main/high at standard levels is universally playable
-	canTransmux := isTransmuxableVideo(info.Video)
+	// remote streams use fixed-length segments, which a stream copy can't cut on, so always re-encode
+	canTransmux := isTransmuxableVideo(info.Video) && !videofile.IsRemotePath(info.Path)
 
 	var ladder []QualityLadderEntry
 

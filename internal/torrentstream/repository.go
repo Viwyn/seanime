@@ -270,6 +270,21 @@ func (r *Repository) GetDownloadDir() string {
 	return r.settings.MustGet().DownloadDir
 }
 
+// GetTranscodeInput returns a local URL of the file currently being streamed, for ffmpeg to read,
+// and a stable id for that file (infohash + path).
+func (r *Repository) GetTranscodeInput() (inputUrl string, id string, ok bool) {
+	t, okT := r.client.currentTorrent.Get()
+	f, okF := r.client.currentFile.Get()
+	if !okT || !okF {
+		return "", "", false
+	}
+	inputUrl = r.client.GetLocalStreamingUrl()
+	if inputUrl == "" {
+		return "", "", false
+	}
+	return inputUrl, t.InfoHash().HexString() + "/" + f.Path(), true
+}
+
 func (r *Repository) getDefaultDownloadPath() string {
 	tempDir := os.TempDir()
 	downloadDirPath := filepath.Join(tempDir, "seanime", "torrentstream")

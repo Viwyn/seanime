@@ -2941,6 +2941,48 @@
     }
   },
   {
+    "name": "HandleDirectstreamTranscode",
+    "trimmedName": "DirectstreamTranscode",
+    "comments": [
+      "HandleDirectstreamTranscode",
+      "",
+      "\t@summary transcode the current torrent stream.",
+      "\t@desc This starts transcoding the torrent currently being streamed so browsers that can't play its codecs can watch it.",
+      "\t@desc Subtitles keep coming from the direct stream, only the video and audio are transcoded.",
+      "\t@returns mediastream.MediaContainer",
+      "\t@route /api/v1/directstream/transcode [POST]",
+      ""
+    ],
+    "filepath": "internal/handlers/directstream.go",
+    "filename": "directstream.go",
+    "api": {
+      "summary": "transcode the current torrent stream.",
+      "descriptions": [
+        "This starts transcoding the torrent currently being streamed so browsers that can't play its codecs can watch it.",
+        "Subtitles keep coming from the direct stream, only the video and audio are transcoded."
+      ],
+      "endpoint": "/api/v1/directstream/transcode",
+      "methods": [
+        "POST"
+      ],
+      "params": [],
+      "bodyFields": [
+        {
+          "name": "ClientId",
+          "jsonName": "clientId",
+          "goType": "string",
+          "usedStructType": "",
+          "typescriptType": "string",
+          "required": true,
+          "descriptions": []
+        }
+      ],
+      "returns": "mediastream.MediaContainer",
+      "returnGoType": "mediastream.MediaContainer",
+      "returnTypescriptType": "Mediastream_MediaContainer"
+    }
+  },
+  {
     "name": "HandleDirectstreamConvertSubs",
     "trimmedName": "DirectstreamConvertSubs",
     "comments": [

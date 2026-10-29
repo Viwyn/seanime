@@ -1,8 +1,10 @@
 import { usePatchSetting } from "@/api/hooks/settings.hooks"
 import {
+    __playback_streamTranscodeAtom,
     ElectronPlaybackMethod,
     PlaybackDownloadedMedia,
     PlaybackTorrentStreaming,
+    StreamTranscodeMode,
     useCurrentDevicePlaybackSettings,
     useExternalPlayerLink,
 } from "@/app/(main)/_atoms/playback.atoms"
@@ -17,6 +19,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/components/ui/core/styling"
 import { RadioGroup } from "@/components/ui/radio-group"
+import { Select } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { __isElectronDesktop__ } from "@/types/constants"
@@ -69,6 +72,8 @@ export function PlaybackSettings() {
 
     const [mpvSettings, setMpvSettings] = useAtom(mc_settings)
     const [isExportingMpvLogs, setIsExportingMpvLogs] = React.useState(false)
+
+    const [streamTranscodeMode, setStreamTranscodeMode] = useAtom(__playback_streamTranscodeAtom)
 
     const usingNativePlayer = __isElectronDesktop__ && electronPlaybackMethod === ElectronPlaybackMethod.NativePlayer
     const usingMpvPlayer = usingNativePlayer && serverStatus?.settings?.mediaPlayer?.mpvPrismEnabled
@@ -346,7 +351,7 @@ export function PlaybackSettings() {
                 <div className="space-y-4">
                     {usingNativePlayer && <OverrideNotice />}
                     <PlaybackChoiceGroup
-                        columns="two"
+                        columns={__isElectronDesktop__ ? "two" : "three"}
                         value={torrentStreamingPlayback}
                         onValueChange={handleTorrentMethodChange}
                         options={[
@@ -364,8 +369,35 @@ export function PlaybackSettings() {
                                 icon: LuExternalLink,
                                 preview: <TorrentExternalPreview />,
                             },
+                            // Denshi has its own built-in player switch
+                            ...(!__isElectronDesktop__ ? [{
+                                value: PlaybackTorrentStreaming.BuiltInPlayer,
+                                title: "Built-in player",
+                                description: "Play the stream in this browser. No transcoding, some codecs (HEVC, AC3) may not play.",
+                                icon: FaHtml5,
+                                preview: <VideoCorePreview />,
+                            }] : []),
                         ]}
                     />
+                    {(!__isElectronDesktop__ && torrentStreamingPlayback === PlaybackTorrentStreaming.BuiltInPlayer) && (
+                        <Select
+                            label="Transcode torrent streams"
+                            help={isMediastreamEnabled
+                                ? "Auto transcodes on the server only when this browser can't play the video or audio format."
+                                : "Requires transcoding to be enabled in the Transcoding / Direct Play settings."}
+                            className="max-w-xs"
+                            value={streamTranscodeMode}
+                            onValueChange={value => {
+                                setStreamTranscodeMode(value as StreamTranscodeMode)
+                                notifyUpdated()
+                            }}
+                            options={[
+                                { value: "auto", label: "Auto" },
+                                { value: "always", label: "Always" },
+                                { value: "off", label: "Off" },
+                            ]}
+                        />
+                    )}
                 </div>
             </SettingsCard>
 

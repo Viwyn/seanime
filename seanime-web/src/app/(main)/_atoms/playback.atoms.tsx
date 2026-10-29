@@ -43,6 +43,7 @@ export const __playback_downloadedMediaAtom = atomWithStorage<string>("sea-playb
 export const enum PlaybackTorrentStreaming {
     Default = "default", // Desktop media player
     ExternalPlayerLink = "externalPlayerLink",
+    BuiltInPlayer = "builtInPlayer", // In-browser player (web only)
 }
 
 export const playbackTorrentStreamingOptions = [
@@ -62,6 +63,10 @@ export const playbackTorrentStreamingOptions = [
 
 
 export const __playback_torrentStreamingAtom = atomWithStorage<string>("sea-playback-torrentstream", PlaybackTorrentStreaming.Default)
+
+// Server-side transcoding of torrent streams played in the browser's built-in player
+export type StreamTranscodeMode = "off" | "auto" | "always"
+export const __playback_streamTranscodeAtom = atomWithStorage<StreamTranscodeMode>("sea-playback-stream-transcode", "auto")
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

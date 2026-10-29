@@ -61,9 +61,13 @@ export function useHandleStartTorrentStream() {
 
     const { resetForcePlaybackMethod, getForcePlaybackMethod } = useForcePlaybackMethod()
 
+    const isUsingNativePlayer = __isElectronDesktop__
+        ? electronPlaybackMethod === ElectronPlaybackMethod.NativePlayer
+        : torrentStreamingPlayback === PlaybackTorrentStreaming.BuiltInPlayer
+
     const getPlaybackType = React.useCallback((forcePlaybackMethod?: ForcePlaybackMethod) => {
         if (
-            (!forcePlaybackMethod && __isElectronDesktop__ && electronPlaybackMethod === ElectronPlaybackMethod.NativePlayer) ||
+            (!forcePlaybackMethod && isUsingNativePlayer) ||
             (forcePlaybackMethod && forcePlaybackMethod === "nativeplayer")
         ) {
             return "nativeplayer"
@@ -75,7 +79,7 @@ export function useHandleStartTorrentStream() {
             return "externalPlayerLink"
         }
         return "default"
-    }, [externalPlayerLink, torrentStreamingPlayback, electronPlaybackMethod])
+    }, [externalPlayerLink, torrentStreamingPlayback, isUsingNativePlayer])
 
     const handleStreamSelection = (params: ManualTorrentStreamSelectionProps) => {
         const forcePlaybackMethod = getForcePlaybackMethod()
@@ -128,7 +132,7 @@ export function useHandleStartTorrentStream() {
     }
 
     return {
-        isUsingNativePlayer: __isElectronDesktop__ && electronPlaybackMethod === ElectronPlaybackMethod.NativePlayer,
+        isUsingNativePlayer,
         handleStreamSelection,
         handleAutoSelectStream,
         isPending,

@@ -260,6 +260,16 @@ func (c *Client) initializeClient() error {
 }
 
 func (c *Client) GetStreamingUrl() string {
+	return c.streamingUrl(true)
+}
+
+// GetLocalStreamingUrl returns a streaming URL reachable from this machine (e.g. by ffmpeg),
+// ignoring the user's public StreamUrlAddress.
+func (c *Client) GetLocalStreamingUrl() string {
+	return c.streamingUrl(false)
+}
+
+func (c *Client) streamingUrl(useAddressOverride bool) string {
 	if c.torrentClient.IsAbsent() {
 		return ""
 	}
@@ -276,7 +286,7 @@ func (c *Client) GetStreamingUrl() string {
 		host = "127.0.0.1"
 	}
 	address := fmt.Sprintf("%s:%d", host, settings.Port)
-	if settings.StreamUrlAddress != "" {
+	if useAddressOverride && settings.StreamUrlAddress != "" {
 		address = settings.StreamUrlAddress
 	}
 	ret := fmt.Sprintf("http://%s/api/v1/torrentstream/stream/%s", address, url.PathEscape(c.currentFile.MustGet().DisplayPath()))

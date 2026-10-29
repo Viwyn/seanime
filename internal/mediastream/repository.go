@@ -171,6 +171,24 @@ func (r *Repository) RequestTranscodeStream(filepath string, clientId string) (r
 	return
 }
 
+// RequestTranscodeRemoteStream transcodes a remote stream (e.g. a torrent being streamed) instead of a file on disk.
+func (r *Repository) RequestTranscodeRemoteStream(inputUrl string, hash string, clientId string) (ret *MediaContainer, err error) {
+	r.reqMu.Lock()
+	defer r.reqMu.Unlock()
+
+	r.logger.Debug().Str("hash", hash).Str("clientId", clientId).Msg("mediastream: Remote transcode stream requested")
+
+	if !r.IsInitialized() {
+		return nil, errors.New("module not initialized")
+	}
+
+	if ok := r.initializeTranscoder(r.settings); !ok {
+		return nil, errors.New("real-time transcoder not initialized, enable transcoding in the settings")
+	}
+
+	return r.playbackManager.RequestRemotePlayback(inputUrl, hash)
+}
+
 func (r *Repository) RequestPreloadTranscodeStream(filepath string) (err error) {
 	r.logger.Debug().Str("filepath", filepath).Msg("mediastream: Transcode stream preloading requested")
 

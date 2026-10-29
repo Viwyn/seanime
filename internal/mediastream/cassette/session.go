@@ -59,6 +59,10 @@ func NewSession(
 	s.ready.Add(1)
 	go func() {
 		defer s.ready.Done()
+		if videofile.IsRemotePath(path) {
+			s.Keyframes = newFixedKeyframeIndex(hash, float64(info.Duration))
+			return
+		}
 		s.Keyframes = getOrExtractKeyframes(path, hash, settings, logger)
 	}()
 

@@ -672,6 +672,17 @@ export const API_ENDPOINTS = {
             methods: ["POST"],
             endpoint: "/api/v1/directstream/play/localfile",
         },
+        /**
+         *  @description
+         *  Route transcode the current torrent stream.
+         *  This starts transcoding the torrent currently being streamed so browsers that can't play its codecs can watch it.
+         *  Subtitles keep coming from the direct stream, only the video and audio are transcoded.
+         */
+        DirectstreamTranscode: {
+            key: "DIRECTSTREAM-directstream-transcode",
+            methods: ["POST"],
+            endpoint: "/api/v1/directstream/transcode",
+        },
         DirectstreamConvertSubs: {
             key: "DIRECTSTREAM-directstream-convert-subs",
             methods: ["POST"],

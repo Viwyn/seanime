@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"mime"
-	"path/filepath"
 	"seanime/internal/util/filecache"
 	"strconv"
 	"strings"
@@ -193,7 +192,7 @@ func FfprobeGetInfo(ffprobePath, path, hash string) (*MediaInfo, error) {
 		return nil, err
 	}
 
-	ext := filepath.Ext(path)[1:]
+	ext := extensionFromPath(path)
 
 	sizeUint64, _ := strconv.ParseUint(data.Format.Size, 10, 64)
 

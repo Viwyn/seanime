@@ -738,6 +738,17 @@
 //     })
 // }
 
+// export function useDirectstreamTranscode() {
+//     return useServerMutation<Mediastream_MediaContainer, DirectstreamTranscode_Variables>({
+//         endpoint: API_ENDPOINTS.DIRECTSTREAM.DirectstreamTranscode.endpoint,
+//         method: API_ENDPOINTS.DIRECTSTREAM.DirectstreamTranscode.methods[0],
+//         mutationKey: [API_ENDPOINTS.DIRECTSTREAM.DirectstreamTranscode.key],
+//         onSuccess: async () => {
+//
+//         },
+//     })
+// }
+
 // export function useDirectstreamConvertSubs() {
 //     return useServerMutation<string, DirectstreamConvertSubs_Variables>({
 //         endpoint: API_ENDPOINTS.DIRECTSTREAM.DirectstreamConvertSubs.endpoint,

@@ -1,3 +1,4 @@
+import { PlaybackTorrentStreaming, useCurrentDevicePlaybackSettings } from "@/app/(main)/_atoms/playback.atoms"
 import { ScanProgressBar } from "@/app/(main)/_features/anime-library/_containers/scan-progress-bar"
 import { ScannerModal } from "@/app/(main)/_features/anime-library/_containers/scanner-modal"
 import { ErrorExplainer } from "@/app/(main)/_features/error-explainer/error-explainer"
@@ -49,6 +50,7 @@ const NativePlayerLazyWrapper = React.lazy(() => import("@/app/(main)/_features/
 
 export const MainLayout = ({ children }: { children: React.ReactNode }) => {
     const serverStatus = useServerStatus()
+    const { torrentStreamingPlayback } = useCurrentDevicePlaybackSettings()
 
     return (
         <>
@@ -77,6 +79,11 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
                     ) : (
                         <NativePlayerLazyWrapper />
                     )}
+                </React.Suspense>
+            )}
+            {(!__isElectronDesktop__ && torrentStreamingPlayback === PlaybackTorrentStreaming.BuiltInPlayer) && (
+                <React.Suspense fallback={null}>
+                    <NativePlayerLazyWrapper />
                 </React.Suspense>
             )}
             <NakamaManager />

@@ -96,6 +96,31 @@ func (p *PlaybackManager) PreloadPlayback(filepath string, streamType StreamType
 	return
 }
 
+// RequestRemotePlayback is called to transcode a remote stream (e.g. a torrent being streamed).
+// Unlike RequestPlayback, it skips attachment and subtitle extraction because they would read the entire stream,
+// the caller (directstream) provides subtitles itself.
+func (p *PlaybackManager) RequestRemotePlayback(inputUrl string, hash string) (ret *MediaContainer, err error) {
+	p.logger.Debug().Str("hash", hash).Msg("mediastream: Requesting remote transcode playback")
+
+	ret = &MediaContainer{
+		Filepath:   inputUrl,
+		Hash:       hash,
+		StreamType: StreamTypeTranscode,
+		StreamUrl:  "/api/v1/mediastream/transcode/master.m3u8",
+	}
+
+	// Only reads the container header
+	ret.MediaInfo, err = videofile.FfprobeGetInfo(p.repository.settings.MustGet().FfprobePath, inputUrl, hash)
+	if err != nil {
+		return nil, fmt.Errorf("failed to probe stream: %w", err)
+	}
+
+	p.mediaContainers.Set(hash, ret)
+	p.currentMediaContainer = mo.Some(ret)
+
+	return ret, nil
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Optimize
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

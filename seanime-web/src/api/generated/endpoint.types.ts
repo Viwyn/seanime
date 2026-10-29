@@ -654,6 +654,17 @@ export type DirectstreamPlayLocalFile_Variables = {
 /**
  * - Filepath: internal/handlers/directstream.go
  * - Filename: directstream.go
+ * - Endpoint: /api/v1/directstream/transcode
+ * @description
+ * Route transcode the current torrent stream.
+ */
+export type DirectstreamTranscode_Variables = {
+    clientId: string
+}
+
+/**
+ * - Filepath: internal/handlers/directstream.go
+ * - Filename: directstream.go
  * - Endpoint: /api/v1/directstream/subs/convert-subs
  * @description
  * Route converts subtitles from one format to another.

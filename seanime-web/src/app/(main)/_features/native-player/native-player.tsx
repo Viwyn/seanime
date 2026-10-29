@@ -1,4 +1,9 @@
+import { getServerBaseUrl } from "@/api/client/server-url"
 import { API_ENDPOINTS } from "@/api/generated/endpoints"
+import { useDirectstreamTranscode } from "@/api/hooks/directstream.hooks"
+import { __playback_streamTranscodeAtom } from "@/app/(main)/_atoms/playback.atoms"
+import { useServerHMACAuth } from "@/app/(main)/_hooks/use-server-status"
+import { shouldTranscodeStream } from "@/app/(main)/_features/native-player/stream-transcode"
 import {
     MKVParser_SubtitleEvent,
     NativePlayer_PlaybackInfo,
@@ -148,6 +153,45 @@ export function NativePlayer() {
     }, [resetSubtitleBuffer])
 
     //
+    // Server-side transcoding (torrent streams the browser can't decode)
+    //
+
+    const streamTranscodeMode = useAtomValue(__playback_streamTranscodeAtom)
+    const { mutateAsync: requestTranscode } = useDirectstreamTranscode()
+    const { getHMACTokenQueryParam } = useServerHMACAuth()
+
+    function showPlayback(playbackInfo: NativePlayer_PlaybackInfo) {
+        setState(draft => {
+            draft.playbackInfo = playbackInfo
+            draft.loadingState = null
+            draft.playbackError = null
+            return
+        })
+        if (!_preserveMiniPlayerRef.current) {
+            setMiniPlayer(false)
+        }
+        _preserveMiniPlayerRef.current = false
+    }
+
+    // Keeps the direct stream's mkvMetadata so subtitles still come from the server, only the video source becomes HLS
+    async function startTranscodedPlayback(playbackInfo: NativePlayer_PlaybackInfo) {
+        try {
+            const container = await requestTranscode({ clientId: clientId ?? "" })
+            if (!container?.streamUrl) throw new Error("No transcode stream returned")
+            const token = await getHMACTokenQueryParam("/api/v1/mediastream/transcode", "?")
+            if (activePlaybackIdRef.current !== playbackInfo.id) return // a newer stream started meanwhile
+            log.info("Playing transcoded stream", container.streamUrl)
+            showPlayback({ ...playbackInfo, streamUrl: `${getServerBaseUrl()}${container.streamUrl}${token}` })
+        }
+        catch (e) {
+            log.error("Failed to start transcoding, playing the original stream", e)
+            toast.error("Could not transcode this stream, playing the original instead")
+            if (activePlaybackIdRef.current !== playbackInfo.id) return
+            showPlayback(playbackInfo)
+        }
+    }
+
+    //
     // Server events
     //
 
@@ -205,16 +249,16 @@ export function NativePlayer() {
                     log.info("Watch event received", { payload })
                     const playbackInfo = payload as NativePlayer_PlaybackInfo
                     resetSubtitleState(playbackInfo.id)
-                    setState(draft => {
-                        draft.playbackInfo = playbackInfo
-                        draft.loadingState = null
-                        draft.playbackError = null
-                        return
-                    })
-                    if (!_preserveMiniPlayerRef.current) {
-                        setMiniPlayer(false)
+                    if (playbackInfo.streamType === "torrent" &&
+                        shouldTranscodeStream(streamTranscodeMode, playbackInfo.mkvMetadata, t => document.createElement("video").canPlayType(t))) {
+                        setState(draft => {
+                            draft.loadingState = "Starting transcode..."
+                            return
+                        })
+                        startTranscodedPlayback(playbackInfo).then()
+                        break
                     }
-                    _preserveMiniPlayerRef.current = false
+                    showPlayback(playbackInfo)
                     break
                 // 3. Subtitle event (MKV)
                 // We receive the subtitle events after the server received the loaded-metadata event.

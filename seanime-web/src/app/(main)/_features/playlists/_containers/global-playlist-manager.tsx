@@ -1,6 +1,6 @@
 import { Anime_Entry, Anime_Playlist, Anime_PlaylistEpisode, HibikeTorrent_AnimeTorrent } from "@/api/generated/types"
 import { useGetAnimeEntry } from "@/api/hooks/anime_entries.hooks"
-import { useCurrentDevicePlaybackSettings } from "@/app/(main)/_atoms/playback.atoms"
+import { ElectronPlaybackMethod, PlaybackTorrentStreaming, useCurrentDevicePlaybackSettings } from "@/app/(main)/_atoms/playback.atoms"
 import { useAutoPlaySelectedTorrent } from "@/app/(main)/_features/autoplay/autoplay"
 import { getBatchSelectionParams } from "@/app/(main)/_features/autoplay/batches.ts"
 import { nativePlayer_stateAtom } from "@/app/(main)/_features/native-player/native-player.atoms"
@@ -79,7 +79,9 @@ export function usePlaylistManager() {
                         : activeOnDevice ? "transcode" : downloadedMediaPlayback,
                     streamPlaybackMethod: __isElectronDesktop__ && electronPlaybackMethod !== "default"
                         ? electronPlaybackMethod
-                        : torrentStreamingPlayback,
+                        : torrentStreamingPlayback === PlaybackTorrentStreaming.BuiltInPlayer
+                            ? ElectronPlaybackMethod.NativePlayer
+                            : torrentStreamingPlayback,
                 },
             },
         })

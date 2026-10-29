@@ -33,8 +33,9 @@ export function VideoCoreAudioMenu() {
     const hlsCurrentAudioTrack = useAtomValue(vc_hlsCurrentAudioTrack)
 
     // Determine which audio tracks to use
-    const audioTracks = mkvAudioTracks || (hlsAudioTracks.length > 0 ? hlsAudioTracks : null)
-    const isHls = !mkvAudioTracks && hlsAudioTracks.length > 0
+    // HLS wins when present: a transcoded MKV stream still carries mkvMetadata (for subtitles) but switches audio through HLS
+    const isHls = hlsAudioTracks.length > 0
+    const audioTracks = isHls ? hlsAudioTracks : mkvAudioTracks
 
     function onAudioChange() {
         setSelectedTrack(audioManager?.getSelectedTrackNumberOrNull?.() ?? null)

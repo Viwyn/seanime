@@ -225,15 +225,31 @@ func extractKeyframes(
 
 // makeDummyKeyframes at 2s intervals
 func makeDummyKeyframes(ffprobePath, path, hash string) ([]float64, error) {
-	const interval = 2.0
 	info, err := videofile.FfprobeGetInfo(ffprobePath, path, hash)
 	if err != nil {
 		return nil, err
 	}
-	n := int(float64(info.Duration)/interval) + 1
+	return fixedKeyframes(float64(info.Duration)), nil
+}
+
+func fixedKeyframes(duration float64) []float64 {
+	const interval = 2.0
+	n := int(duration/interval) + 1
 	out := make([]float64, n)
 	for i := range out {
 		out[i] = float64(i) * interval
 	}
-	return out, nil
+	return out
+}
+
+// newFixedKeyframeIndex returns a complete index of fixed-length segments.
+// Used for remote streams (torrents), where a keyframe scan would read, and download, every packet of the
+// file before playback could seek. The video pipeline forces keyframes at these times.
+// ponytail: segment edges may hitch slightly, scan real keyframes once the file is fully downloaded if it matters
+func newFixedKeyframeIndex(hash string, duration float64) *KeyframeIndex {
+	return &KeyframeIndex{
+		Sha:       hash,
+		Keyframes: fixedKeyframes(duration),
+		IsDone:    true,
+	}
 }

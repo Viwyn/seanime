@@ -1,5 +1,9 @@
 import { useServerMutation } from "../client/requests"
-import { DirectstreamConvertSubs_Variables, DirectstreamPlayLocalFile_Variables } from "../generated/endpoint.types"
+import {
+    DirectstreamConvertSubs_Variables,
+    DirectstreamPlayLocalFile_Variables,
+    DirectstreamTranscode_Variables,
+} from "../generated/endpoint.types"
 import { API_ENDPOINTS } from "../generated/endpoints"
 import { Mediastream_MediaContainer } from "../generated/types"
 
@@ -11,6 +15,14 @@ export function useDirectstreamPlayLocalFile() {
         onSuccess: async () => {
 
         },
+    })
+}
+
+export function useDirectstreamTranscode() {
+    return useServerMutation<Mediastream_MediaContainer, DirectstreamTranscode_Variables>({
+        endpoint: API_ENDPOINTS.DIRECTSTREAM.DirectstreamTranscode.endpoint,
+        method: API_ENDPOINTS.DIRECTSTREAM.DirectstreamTranscode.methods[0],
+        mutationKey: [API_ENDPOINTS.DIRECTSTREAM.DirectstreamTranscode.key],
     })
 }
 

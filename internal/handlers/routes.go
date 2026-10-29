@@ -467,6 +467,7 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	// Direct Stream
 	//
 	v1.POST("/directstream/play/localfile", h.HandleDirectstreamPlayLocalFile)
+	v1.POST("/directstream/transcode", h.HandleDirectstreamTranscode)
 	v1.GET("/directstream/stream", echo.WrapHandler(h.HandleDirectstreamGetStream()))
 	v1.HEAD("/directstream/stream", echo.WrapHandler(h.HandleDirectstreamGetStream()))
 	v1.GET("/directstream/att/*", h.HandleDirectstreamGetAttachments)
