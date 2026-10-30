@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"seanime/internal/api/anilist"
+	"seanime/internal/events"
 	"seanime/internal/library/anime"
 	"seanime/internal/mkvparser"
 	"seanime/internal/player"
@@ -109,6 +110,11 @@ func (m *Manager) BeginOpenWithTarget(clientId string, step string, onCancel fun
 	m.playbackMu.Unlock()
 
 	m.cancelAndTerminateStream(previousStream, cancelPlayback)
+
+	// Playback started on another browser/device, close the previous client's player
+	if previousStream != nil && previousStream.ClientId() != "" && previousStream.ClientId() != clientId {
+		m.wsEventManager.SendEventTo(previousStream.ClientId(), events.PlaybackTakenOver, nil)
+	}
 
 	m.playbackMu.Lock()
 	m.preparingClientID = clientId

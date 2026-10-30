@@ -195,6 +195,17 @@ export function NativePlayer() {
     // Server events
     //
 
+    // Playback started on another browser/device, the server stream now belongs to it
+    useWebsocketMessageListener({
+        type: WSEvents.PLAYBACK_TAKEN_OVER,
+        onMessage: () => {
+            if (!state.active) return
+            log.info("Playback taken over by another client")
+            handleTerminateStream()
+            toast.info("Playback continued on another device")
+        },
+    })
+
     useWebsocketMessageListener({
         type: WSEvents.NATIVE_PLAYER,
         onMessage: ({ type, payload }: { type: NativePlayer_ServerEvent, payload: unknown }) => {

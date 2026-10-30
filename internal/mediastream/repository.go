@@ -29,6 +29,7 @@ type (
 		mediacoreCoordinator *mediacore.Coordinator
 		fileCacher           *filecache.Cacher
 		reqMu                sync.Mutex
+		ownerClientId        string // client that started the current stream, guarded by reqMu
 		cacheDir             string // where attachments are stored
 		transcodeDir         string // where stream segments are stored
 	}
@@ -161,6 +162,8 @@ func (r *Repository) RequestTranscodeStream(filepath string, clientId string) (r
 		return nil, errors.New("module not initialized")
 	}
 
+	r.claimStream(clientId)
+
 	// Reinitialize the transcoder for each new transcode request
 	if ok := r.initializeTranscoder(r.settings); !ok {
 		return nil, errors.New("real-time transcoder not initialized, check your settings")
@@ -181,6 +184,8 @@ func (r *Repository) RequestTranscodeRemoteStream(inputUrl string, hash string, 
 	if !r.IsInitialized() {
 		return nil, errors.New("module not initialized")
 	}
+
+	r.claimStream(clientId)
 
 	if ok := r.initializeTranscoder(r.settings); !ok {
 		return nil, errors.New("real-time transcoder not initialized, enable transcoding in the settings")
@@ -215,9 +220,24 @@ func (r *Repository) RequestDirectPlay(filepath string, clientId string) (ret *M
 		return nil, errors.New("module not initialized")
 	}
 
+	r.claimStream(clientId)
+
 	ret, err = r.playbackManager.RequestPlayback(filepath, StreamTypeDirect)
 
 	return
+}
+
+// claimStream makes clientId the owner of the stream, telling the previous owner (another browser/device)
+// that its playback was taken over so it closes its player instead of erroring on a dead stream.
+// Must hold reqMu.
+func (r *Repository) claimStream(clientId string) {
+	previous := r.ownerClientId
+	r.ownerClientId = clientId
+	if previous == "" || clientId == "" || previous == clientId || !r.playbackManager.currentMediaContainer.IsPresent() {
+		return
+	}
+	r.logger.Debug().Str("previous", previous).Str("clientId", clientId).Msg("mediastream: Playback taken over by another client")
+	r.wsEventManager.SendEventTo(previous, events.PlaybackTakenOver, nil)
 }
 
 func (r *Repository) RequestPreloadDirectPlay(filepath string) (err error) {

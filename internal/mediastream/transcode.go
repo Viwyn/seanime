@@ -166,6 +166,12 @@ func (r *Repository) ShutdownTranscodeStream(clientId string) {
 		return
 	}
 
+	// Another browser/device closing its (already replaced) player must not kill the owner's stream
+	if clientId != "" && r.ownerClientId != "" && clientId != r.ownerClientId {
+		r.logger.Debug().Str("client_id", clientId).Str("owner", r.ownerClientId).Msg("mediastream: Ignoring shutdown request from non-owner client")
+		return
+	}
+
 	// Kill playback
 	r.playbackManager.KillPlayback()
 
@@ -177,5 +183,10 @@ func (r *Repository) ShutdownTranscodeStream(clientId string) {
 	r.initializeTranscoder(r.settings)
 
 	// Send event
-	r.wsEventManager.SendEvent(events.MediastreamShutdownStream, nil)
+	if r.ownerClientId != "" {
+		r.wsEventManager.SendEventTo(r.ownerClientId, events.MediastreamShutdownStream, nil)
+	} else {
+		r.wsEventManager.SendEvent(events.MediastreamShutdownStream, nil)
+	}
+	r.ownerClientId = ""
 }

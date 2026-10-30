@@ -235,6 +235,16 @@ function MediastreamPage() {
         },
     })
 
+    // playback started on another browser/device, the transcoder now belongs to it
+    useWebsocketMessageListener({
+        type: WSEvents.PLAYBACK_TAKEN_OVER,
+        onMessage: () => {
+            log.warning("Playback taken over by another client")
+            changeUrl(null)
+            toast.info("Playback continued on another device")
+        },
+    })
+
 
     // subtitles
     const subtitleTracks = React.useMemo<VideoCore_VideoSubtitleTrack[] | undefined>(() => {

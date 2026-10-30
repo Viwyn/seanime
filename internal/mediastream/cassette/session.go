@@ -286,6 +286,8 @@ func (s *Session) getAudioPipeline(idx int32) *Pipeline {
 			"-c:a", decision.Codec,
 		}
 		if !decision.Copy {
+			// stretch/pad to source timestamps so gaps in the source audio don't accumulate into drift
+			args = append(args, "-af", "aresample=async=1")
 			args = append(args, "-ac", decision.Channels)
 			if decision.Bitrate != "" {
 				args = append(args, "-b:a", decision.Bitrate)

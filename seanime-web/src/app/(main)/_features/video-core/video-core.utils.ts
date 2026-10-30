@@ -1,7 +1,6 @@
 import { MKVParser_ChapterInfo } from "@/api/generated/types"
 import { getChapterType, getDefaultSkipChapters, introIsOpening } from "@/app/(main)/_features/media-core/media-core-chapters"
 import { normalizeAniSkipData } from "@/app/(main)/_features/video-core/_lib/aniskip.utils"
-import { VideoCoreChapterCue } from "@/app/(main)/_features/video-core/video-core"
 import { vc_videoElement } from "@/app/(main)/_features/video-core/video-core-atoms"
 import { vc_videoSize } from "@/app/(main)/_features/video-core/video-core-atoms"
 import { vc_duration } from "@/app/(main)/_features/video-core/video-core-atoms"
@@ -169,53 +168,7 @@ export function useVideoCoreBindings(videoElement: HTMLVideoElement | null,
 
 }
 
-export const vc_createChapterCues = (chapters: Array<MKVParser_ChapterInfo> | undefined, duration: number): VideoCoreChapterCue[] => {
-    if (!chapters || chapters.length === 0 || duration === 0) {
-        return []
-    }
-
-    return vc_fillChapterCues(chapters.map((chapter, index) => ({
-        startTime: chapter.start,
-        endTime: chapter.end ? chapter.end : (chapters[index + 1]?.start ? chapters[index + 1].start : duration),
-        text: chapter.text || ``,
-    }))).filter(c => c.startTime !== undefined && c.endTime !== undefined && c.startTime <= duration && c.endTime <= duration)
-}
-
-export const vc_fillChapterCues = (chapters: VideoCoreChapterCue[]): VideoCoreChapterCue[] => {
-    if (!chapters || chapters.length === 0) {
-        return []
-    }
-
-    const EPS = 1e-6
-    const sorted = [...chapters].sort((a, b) => (a.startTime ?? 0) - (b.startTime ?? 0))
-    const out: VideoCoreChapterCue[] = []
-
-    for (let i = 0; i < sorted.length; i++) {
-        const cur = sorted[i]
-        const next = sorted[i + 1]
-        const start = cur.startTime ?? 0
-        let end = typeof cur.endTime === "number" ? cur.endTime : (next ? (next.startTime ?? start) : start)
-        if (end < start) end = start
-
-        // leading gap
-        if (i === 0 && start > EPS) {
-            out.push({ startTime: 0, endTime: start, text: "" })
-        }
-
-        // gap between previous output end and this start
-        const prev = out[out.length - 1]
-        if (prev) {
-            const prevEnd = prev.endTime ?? prev.startTime
-            if (start > (prevEnd ?? 0) + EPS) {
-                out.push({ startTime: prevEnd ?? 0, endTime: start, text: "" })
-            }
-        }
-
-        out.push({ startTime: start, endTime: end, text: cur.text ?? "" })
-    }
-
-    return out
-}
+export { vc_createChapterCues, vc_fillChapterCues } from "@/app/(main)/_features/video-core/video-core-chapter-cues"
 
 export const vc_createChapterVTT = (chapters: Array<MKVParser_ChapterInfo> | undefined, duration: number) => {
     if (!chapters || chapters.length === 0 || duration === 0) {

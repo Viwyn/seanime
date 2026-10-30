@@ -93,7 +93,6 @@ export function VideoCoreTimeRange(props: VideoCoreTimeRangeProps) {
             end: 0,
         }]
 
-        let percentageOffset = 0
         return chapterCues
             .toSorted((a, b) => a.startTime - b.startTime)
             .filter(chapter =>
@@ -105,15 +104,13 @@ export function VideoCoreTimeRange(props: VideoCoreTimeRangeProps) {
                 const end = chapter.endTime ?? duration
                 const chapterDuration = end - start
                 const width = duration > 0 ? (chapterDuration / duration) * 100 : 0
-                const result = {
+                return {
                     width,
-                    percentageOffset,
+                    percentageOffset: duration > 0 ? (start / duration) * 100 : 0,
                     label: chapter.text || null,
                     start,
                     end,
                 }
-                percentageOffset += width
-                return result
             })
     }, [chapterCues, duration])
 

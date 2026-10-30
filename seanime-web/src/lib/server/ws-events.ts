@@ -31,6 +31,7 @@ export const enum WSEvents {
     MANGA_PREFERENCES_UPDATED = "manga-preferences-updated",
     MANGA_SOURCE_REFRESH_UPDATED = "manga-source-refresh-job-updated",
     MEDIASTREAM_SHUTDOWN_STREAM = "mediastream-shutdown-stream",
+    PLAYBACK_TAKEN_OVER = "playback-taken-over",
     EXTENSIONS_RELOADED = "extensions-reloaded",
     EXTENSION_UPDATES_FOUND = "extension-updates-found",
     PLUGIN_UNLOADED = "plugin-unloaded",

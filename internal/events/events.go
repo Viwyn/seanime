@@ -44,6 +44,8 @@ const (
 
 	ExternalPlayerOpenURL = "external-player-open-url" // Open a URL to send media to an external media player
 
+	PlaybackTakenOver = "playback-taken-over" // Sent to a client whose stream was replaced by playback started on another client
+
 	InfoToast    = "info-toast"
 	ErrorToast   = "error-toast"
 	WarningToast = "warning-toast"
